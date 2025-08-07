@@ -1,18 +1,271 @@
-## smollan-assignment-books
-# Create/Update: Combine create and update operations into a single endpoint.
-    • If the book with the same isbn or the same combination of title, author, and publication_year exists, update the book details.✅
-    • If no such book exists, create a new book with a new id.✅
-    • Validate that the ISBN is unique.✅
-    • Validate that the publication year is within a reasonable range (e.g., 1450 to the current year).✅
+# Book Management API
 
-# Read: Retrieve all books.
-    • Support pagination.✅
-    • Support sorting by title, author, or publication year.✅
-    • Support filtering by genre or author.✅
-    • Add a websocket to connect, which will fetch books updated in real-time and add and remove and update the response.✅
+A FastAPI application for managing books with real-time updates via WebSocket connections.
 
-# Constraints
-    • Use only the JSON file for data storage.✅
-    • Ensure thread safety when reading and writing to the JSON file.✅
-    • Implement proper error handling and validation.✅
-    • Provide meaningful responses for each operation.✅
+## Features
+
+### Create/Update: Combined Operations ✅
+
+**Update existing book by ISBN match:**
+```bash
+POST /books
+{
+  "title": "Updated Title",
+  "author": "Same Author",
+  "publication_year": 2023,
+  "genre": "Fiction",
+  "isbn": "9780743273565"
+}
+```
+**Response:**
+```json
+{
+  "id": 1,
+  "title": "Updated Title",
+  "author": "Same Author", 
+  "publication_year": 2023,
+  "genre": "Fiction",
+  "isbn": "9780743273565"
+}
+```
+
+**Update existing book by title+author+year combination:**
+```bash
+POST /books
+{
+  "title": "The Great Gatsby",
+  "author": "F. Scott Fitzgerald",
+  "publication_year": 1925,
+  "genre": "Classic",
+  "isbn": "9999999999"
+}
+```
+**Response:**
+```json
+{
+  "id": 1,
+  "title": "The Great Gatsby",
+  "author": "F. Scott Fitzgerald",
+  "publication_year": 1925,
+  "genre": "Classic", 
+  "isbn": "9999999999"
+}
+```
+
+### Create New Book ✅
+
+**Create new book with auto-generated ID:**
+```bash
+POST /books
+{
+  "title": "New Book",
+  "author": "New Author",
+  "publication_year": 2024,
+  "genre": "Mystery",
+  "isbn": "1234567890"
+}
+```
+**Response:**
+```json
+{
+  "id": 3,
+  "title": "New Book",
+  "author": "New Author",
+  "publication_year": 2024,
+  "genre": "Mystery",
+  "isbn": "1234567890"
+}
+```
+
+### ISBN Uniqueness Validation ✅
+
+**Duplicate ISBN rejection:**
+```bash
+POST /books
+{
+  "title": "Another Book",
+  "author": "Another Author", 
+  "publication_year": 2024,
+  "genre": "Fiction",
+  "isbn": "9780743273565"
+}
+```
+**Response:**
+```json
+{
+  "detail": "ISBN already exists"
+}
+```
+
+### Publication Year Validation ✅
+
+**Invalid year rejection:**
+```bash
+POST /books
+{
+  "title": "Future Book",
+  "author": "Time Traveler",
+  "publication_year": 2030,
+  "genre": "Sci-Fi", 
+  "isbn": "1111111111"
+}
+```
+**Response:**
+```json
+{
+  "detail": "ensure this value is less than or equal to 2025"
+}
+```
+
+### Pagination Support ✅
+
+**Paginated book retrieval:**
+```bash
+GET /books?page=1&limit=5
+```
+**Response:**
+```json
+{
+  "books": [...],
+  "total": 10,
+  "page": 1,
+  "limit": 5,
+  "pages": 2
+}
+```
+
+### Sorting Support ✅
+
+**Sort by title, author, or publication year:**
+```bash
+GET /books?sort_by=publication_year
+```
+**Response:**
+```json
+{
+  "books": [
+    {"id": 1, "title": "Old Book", "publication_year": 1925, ...},
+    {"id": 2, "title": "New Book", "publication_year": 2024, ...}
+  ],
+  "total": 2,
+  "page": 1,
+  "limit": 10,
+  "pages": 1
+}
+```
+
+### Filtering Support ✅
+
+**Filter by genre or author:**
+```bash
+GET /books?genre=Fiction&author=Harper Lee
+```
+**Response:**
+```json
+{
+  "books": [
+    {
+      "id": 2,
+      "title": "To Kill a Mockingbird", 
+      "author": "Harper Lee",
+      "genre": "Fiction",
+      ...
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "limit": 10,
+  "pages": 1
+}
+```
+
+### Real-time WebSocket Updates ✅
+
+**WebSocket connection for live updates:**
+```javascript
+const ws = new WebSocket('ws://localhost:8000/ws');
+ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    console.log(data);
+};
+```
+**Response on book update:**
+```json
+{
+  "action": "updated",
+  "book": {
+    "id": 1,
+    "title": "Updated Book",
+    "author": "Author Name",
+    ...
+  }
+}
+```
+
+**Response on book creation:**
+```json
+{
+  "action": "created", 
+  "book": {
+    "id": 3,
+    "title": "New Book",
+    ...
+  }
+}
+```
+
+### Delete Operations ✅
+
+**Delete book by ID:**
+```bash
+DELETE /books/1
+```
+**Response:**
+```json
+{
+  "message": "Book deleted successfully"
+}
+```
+
+## Technical Implementation
+
+### JSON File Storage ✅
+- All data persisted in `books.json`
+- No external database dependencies
+
+### Thread Safety ✅
+- Async locks for concurrent file operations
+- WebSocket connection management with locks
+- Race condition prevention
+
+### Error Handling & Validation ✅
+- Pydantic models for request validation
+- HTTP status codes for different scenarios
+- Graceful error responses
+
+### Meaningful Responses ✅
+- Consistent JSON response format
+- Clear error messages
+- Detailed pagination metadata
+
+## Setup & Installation
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the application  
+uvicorn main:app --reload
+
+# Access API documentation
+# http://localhost:8000/docs
+```
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/books` | Retrieve books with pagination, sorting, filtering |
+| POST | `/books` | Create or update book |
+| DELETE | `/books/{id}` | Delete book by ID |
+| WS | `/ws` | WebSocket connection for real-time updates |
