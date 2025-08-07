@@ -231,12 +231,13 @@ DELETE /books/1
 
 ### JSON File Storage ✅
 - All data persisted in `books.json`
-- No external database dependencies
 
 ### Thread Safety ✅
 - Async locks for concurrent file operations
 - WebSocket connection management with locks
-- Race condition prevention
+
+### Realtime Updates ✅
+- WebSocket connection for live updates
 
 ### Error Handling & Validation ✅
 - Pydantic models for request validation
@@ -251,21 +252,16 @@ DELETE /books/1
 ## Setup & Installation
 
 ```bash
-# Install dependencies
 pip install -r requirements.txt
 
-# Run the application  
 uvicorn main:app --reload
 
 # Access API documentation
 # http://localhost:8000/docs
 ```
 
-## API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/books` | Retrieve books with pagination, sorting, filtering |
-| POST | `/books` | Create or update book |
-| DELETE | `/books/{id}` | Delete book by ID |
-| WS | `/ws` | WebSocket connection for real-time updates |
+API Endpoints
+GET /books - gets all books, has page and limit stuff
+POST /books - adds new book or updates existing one
+DELETE /books/{id} - removes book with that id
+WS /ws - websocket for live updates

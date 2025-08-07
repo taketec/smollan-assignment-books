@@ -1,8 +1,9 @@
 from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from models import BookCreate, BookResponse
 import json
-import asyncio
-import aiofiles
+import asyncio # thread locking done via asyncIO
+import aiofiles 
 from typing import List, Optional
 
 app = FastAPI()
@@ -88,6 +89,59 @@ async def notify_ws_clients(message):
         # remove disconnected clients
         for ws in disconnected:
             connected_ws.remove(ws)
+
+@app.post("/books")
+async def create_or_update_book(book: BookCreate):
+    # check if book exists
+    idx, existing_book = await find_existing_book(
+        book.title, book.author, book.publication_year, book.isbn
+    )
+    
+    books = await read_books_from_file()
+    
+    if existing_book:
+        # update existing book - but still need to check ISBN uniqueness
+        # unless the ISBN is the same as the existing book's ISBN
+        if existing_book['isbn'] != book.isbn and await check_isbn_exists(book.isbn, exclude_id=existing_book['id']):
+            raise HTTPException(status_code=400, detail="ISBN already exists")
+        
+        books[idx] = {
+            "id": existing_book['id'],
+            "title": book.title,
+            "author": book.author,
+            "publication_year": book.publication_year,
+            "genre": book.genre,
+            "isbn": book.isbn
+        }
+        action = "updated"
+        result_book = books[idx]
+    else:
+        # check isbn uniqueness for new book
+        if await check_isbn_exists(book.isbn):
+            raise HTTPException(status_code=400, detail="ISBN already exists")
+        
+        # create new book
+        new_book = {
+            "id": await get_next_book_id(),
+            "title": book.title,
+            "author": book.author,
+            "publication_year": book.publication_year,
+            "genre": book.genre,
+            "isbn": book.isbn
+        }
+        books.append(new_book)
+        action = "created"
+        result_book = new_book
+    
+    await write_books_to_file(books)
+    
+    # notify websocket clients
+    await notify_ws_clients({
+        "action": action,
+        "book": result_book
+    })
+    
+    return result_book
 
 @app.get("/books")
 async def get_books(
