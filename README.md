@@ -4,8 +4,8 @@ A FastAPI application for managing books with real-time updates via WebSocket co
 
 ## Key Problems Solved
 
-  -Race Conditions - Used asyncio locks to prevent concurrent file operations from corrupting JSON data
-  -Real-time Broadcasting - WebSocket connections maintain persistent duplex channels for instant client notifications
+ - Race Conditions - Used asyncio locks to prevent concurrent file operations from corrupting JSON data
+ - Real-time Broadcasting - WebSocket connections maintain persistent duplex channels for instant client notifications
 
 ## API Screenshots
 
