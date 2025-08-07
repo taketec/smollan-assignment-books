@@ -8,6 +8,32 @@ A FastAPI application for managing books with real-time updates via WebSocket co
 
 -Real-time Broadcasting - WebSocket connections maintain persistent duplex channels for instant client notifications
 
+## Setup & Installation 
+
+```bash
+pip install -r requirements.txt
+
+uvicorn main:app --reload
+
+# Access API documentation
+# http://localhost:8000/docs
+```
+## Tests 
+
+```bash
+# Run all tests
+pytest
+
+# Run just CRUD tests
+pytest test_main.py
+
+# Run just WebSocket tests  
+pytest test_websocket.py
+
+```
+
+
+
 ## API Screenshots
 
 ### WebSocket Connection
