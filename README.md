@@ -4,6 +4,9 @@ A FastAPI application for managing books with real-time updates via WebSocket co
 
 ## API Screenshots
 
+### WebSocket Connection
+![WebSocket](images/websocket.png)
+
 ### Create Book
 ![Create Book](images/create.png)
 
@@ -16,8 +19,6 @@ A FastAPI application for managing books with real-time updates via WebSocket co
 ### Delete Book
 ![Delete Book](images/delete.png)
 
-### WebSocket Connection
-![WebSocket](images/websocket.png)
 
 ## Features
 
